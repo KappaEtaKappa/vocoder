@@ -97,6 +97,12 @@ public class Reciever {
 						System.exit(0);
 					}
 				}
+				
+				@Override
+				public void start(){
+					run();
+					super.start();
+				}
 			};
 			captureThread.start();
 		}catch(Exception e){
