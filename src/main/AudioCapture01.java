@@ -1,3 +1,6 @@
+//http://www.developer.com/java/other/article.php/1572251/Java-Sound-Getting-Started-Part-1-Playback.htm#Whats Next
+//http://www.developer.com/java/other/article.php/1579071/Java-Sound-Getting-Started-Part-2-Capture-Using-Specified-Mixer.htm
+
 package main;
 /*File AudioCapture01.java
 This program demonstrates the capture
@@ -103,10 +106,15 @@ public class AudioCapture01 extends JFrame {
 	// a ByteArrayOutputStream object.
 	private void captureAudio() {
 		try {
+			audioFormat = getAudioFormat();
+			DataLine.Info dataLineInfo = new DataLine.Info(SourceDataLine.class, audioFormat);
+			sDL = (SourceDataLine) AudioSystem.getLine(dataLineInfo);
+			sDL.open(audioFormat);
+			sDL.start();
 			// Get everything set up for
 			// capture
-			audioFormat = getAudioFormat();
-			DataLine.Info dataLineInfo = new DataLine.Info(TargetDataLine.class, audioFormat);
+			
+			dataLineInfo = new DataLine.Info(TargetDataLine.class, audioFormat);
 			tDL = (TargetDataLine) AudioSystem.getLine(dataLineInfo);
 			tDL.open(audioFormat);
 			tDL.start();
@@ -116,8 +124,10 @@ public class AudioCapture01 extends JFrame {
 			// running. It will run until
 			// the Stop button is clicked.
 			Runnable capture = new Runnable() {
-				byte tempBuffer[] = new byte[10000];
-
+				byte tempInBuffer[] = new byte[16];
+				byte tempOutBuffer[] = new byte[16];
+				//TODO MAKE PLAYBACK SIMULTANEIOUS god i suck at spelling
+				//
 				public void run() {
 					byteOutStream = new ByteArrayOutputStream();
 					stopCapture = false;
@@ -127,23 +137,31 @@ public class AudioCapture01 extends JFrame {
 						while (!stopCapture) {
 							// Read data from the internal
 							// buffer of the data line.
-							int cur = tDL.read(tempBuffer, 0, tempBuffer.length);
+							int cur = tDL.read(tempInBuffer, 0, tempInBuffer.length);
+							
 							if (cur > 0) {
 								// Save data in output stream
 								// object.
-								byteOutStream.write(tempBuffer, 0, cur);
+								byteOutStream.write(tempInBuffer, 0, cur);
+								
+								
+
+								
+								sDL.write(tempInBuffer, 0, cur); //was just added
 							} // end if
+							
+							//TODO clear byeOutStream
 						} // end while
 						byteOutStream.close();
 					} catch (Exception e) {
-						System.out.println(e);
+						e.printStackTrace();
 						System.exit(0);
 					} // end catch
 				}// end run
 			};
 			new Thread(capture).start();
 		} catch (Exception e) {
-			System.out.println(e);
+			e.printStackTrace(System.out);
 			System.exit(0);
 		}
 	}
